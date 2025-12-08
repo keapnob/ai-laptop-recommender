@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: laptop_db_v99         # New unique name
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: newpassword123   # Explicit new password
+      POSTGRES_DB: postgres
+    ports:
+      - "5440:5432"                       # <--- MOVING TO PORT 5440
+    volumes:
+      - laptop_volume_v99:/var/lib/postgresql/data  # <--- NEW FRESH VOLUME
+
+volumes:
+  laptop_volume_v99:
