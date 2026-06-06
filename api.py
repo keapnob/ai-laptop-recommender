@@ -1,24 +1,36 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from sqlalchemy import create_engine, text
+from config import DATABASE_URL, AI_MODEL_NAME
+
 
 # 1. INITIALIZE THE APP
 app = FastAPI(title="Laptop Recommender API")
 
 # 2. SETUP CORS (Crucial for Next.js)
-# This allows your future Frontend (Port 3000) to talk to this Backend (Port 8000)
+frontend_url = os.getenv("FRONTEND_URL")
+origins = ["*"]
+if frontend_url:
+    origins = [
+        frontend_url,
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace "*" with your frontend URL
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # 3. DATABASE CONNECTION (Same as before)
-DATABASE_URL = "postgresql://postgres:newpassword123@127.0.0.1:5440/postgres"
+# DATABASE_URL imported from config.py
+
 try:
     engine = create_engine(DATABASE_URL)
     # Test connection
@@ -31,7 +43,7 @@ except Exception as e:
 # 4. LOAD AI MODEL (Global variable)
 # We load this once when the server starts
 print("🧠 Loading AI Model...")
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = SentenceTransformer(AI_MODEL_NAME)
 print("✅ AI Model Loaded")
 
 # 5. API ENDPOINTS
@@ -76,22 +88,6 @@ def search_laptops(query: str, max_price: int = 100000, limit: int = 5):
                 "specs": row[2],
                 "image_url": row[3],  # <--- NEW: Send image to frontend
                 "match_score": round(float(row[4]) * 100, 1) # Note: Similarity is now index 4
-            })
-            
-        return {"count": len(results), "results": results}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-        # C. Format the data as JSON (List of Dictionaries)
-        # We don't draw UI here. We just pack the data nicely.
-        results = []
-        for row in rows:
-            results.append({
-                "name": row[0],
-                "price": float(row[1]),
-                "specs": row[2],
-                "match_score": round(float(row[3]) * 100, 1) # Convert 0.85 to 85.0
             })
             
         return {"count": len(results), "results": results}

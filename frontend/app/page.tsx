@@ -24,8 +24,9 @@ export default function Home() {
     setLaptops([])
 
     try {
-      // Connect to your Python Backend
-      const res = await fetch(`http://127.0.0.1:8000/search?query=${query}&max_price=${price}`)
+      // Connect to your Python Backend (Uses environment variable in production, falls back to localhost)
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+      const res = await fetch(`${apiBaseUrl}/search?query=${query}&max_price=${price}`)
       const data = await res.json()
       setLaptops(data.results)
     } catch (error) {

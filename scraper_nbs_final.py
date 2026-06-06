@@ -5,8 +5,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from database_setup import Laptop
 
+from config import DATABASE_URL
+
 # Database Config
-DATABASE_URL = "postgresql://postgres:newpassword123@127.0.0.1:5440/postgres"
 engine = create_engine(DATABASE_URL)
 
 def clean_price(text_list):

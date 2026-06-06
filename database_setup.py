@@ -3,10 +3,9 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, Text, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from pgvector.sqlalchemy import Vector
 
+from config import DATABASE_URL
+
 # 2. Define the Database Connection
-# Update this line ONLY:
-# We are now using Port 5440 and password 'newpassword123'
-DATABASE_URL = "postgresql://postgres:newpassword123@127.0.0.1:5440/postgres"
 engine = create_engine(DATABASE_URL)
 
 class Base(DeclarativeBase):

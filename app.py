@@ -2,18 +2,18 @@ import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sentence_transformers import SentenceTransformer
+from config import DATABASE_URL, AI_MODEL_NAME
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="AI Laptop Recommender", layout="wide")
 
-# Connect to your Database (Port 5440)
-DATABASE_URL = "postgresql://postgres:newpassword123@127.0.0.1:5440/postgres"
+# Connect to your Database
 engine = create_engine(DATABASE_URL)
 
 # Load the AI Model (Cached so it doesn't reload every time you click)
 @st.cache_resource
 def load_model():
-    return SentenceTransformer('all-MiniLM-L6-v2')
+    return SentenceTransformer(AI_MODEL_NAME)
 
 try:
     model = load_model()

@@ -1,27 +1,33 @@
+import sys
+import io
 from sentence_transformers import SentenceTransformer
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 from database_setup import Laptop
+from config import DATABASE_URL, AI_MODEL_NAME
 
-# 1. Connect to Database (Port 5440)
-DATABASE_URL = "postgresql://postgres:newpassword123@127.0.0.1:5440/postgres"
+# Fix Windows encoding issue
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
+# 1. Connect to Database
 engine = create_engine(DATABASE_URL)
 
+
 def update_embeddings():
-    print("🧠 Loading AI Model (all-MiniLM-L6-v2)...")
+    print(f"[AI] Loading AI Model ({AI_MODEL_NAME})...")
     # This downloads a small, fast model optimized for semantic search
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer(AI_MODEL_NAME)
 
     with Session(engine) as session:
         # 2. Get all laptops
         laptops = session.query(Laptop).all()
-        print(f"📂 Found {len(laptops)} laptops in database.")
+        print(f"[DB] Found {len(laptops)} laptops in database.")
         
         count = 0
         for laptop in laptops:
-            # Check if embedding is empty (sum is 0)
-            # We use a simple check: if the first number is 0, it probably needs updating
-            if laptop.embedding[0] == 0.0:
+            # Check if embedding is empty or None
+            # We use a safe check: if None, empty, or the first number is 0, it needs updating
+            if laptop.embedding is None or len(laptop.embedding) == 0 or laptop.embedding[0] == 0.0:
                 
                 # Create a rich text description for the AI to read
                 # We combine Name + Price + Specs to give the AI full context
@@ -35,10 +41,10 @@ def update_embeddings():
                 count += 1
                 
                 if count % 10 == 0:
-                    print(f"   ⚡ Processed {count} laptops...")
+                    print(f"   [PROGRESS] Processed {count} laptops...")
 
         session.commit()
-        print(f"✅ Success! Updated AI memory for {count} laptops.")
+        print(f"[SUCCESS] Updated AI memory for {count} laptops.")
 
 if __name__ == "__main__":
     update_embeddings()
