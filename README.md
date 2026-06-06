@@ -1,3 +1,13 @@
+---
+title: Laptop Recommender Api
+emoji: 🚀
+colorFrom: gray
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # AI-Powered Laptop Recommender (RAG)
 
 > A Full-Stack AI application that uses **Retrieval-Augmented Generation (RAG)** to recommend laptops based on natural language queries (e.g., *"I need a laptop for heavy gaming and coding under 35k"*).
