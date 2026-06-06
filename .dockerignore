@@ -1,0 +1,14 @@
+venv/
+frontend/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+*.db
+*.log
+Dockerfile
+docker-compose.yml
+deploy_guide.md
+migrate_to_neon.py
+scraper_*.py
+generate_embeddings.py
