@@ -83,11 +83,11 @@ def search_laptops(query: str, max_price: int = 100000, limit: int = 5):
         results = []
         for row in rows:
             results.append({
-                "name": row[0],
-                "price": float(row[1]),
-                "specs": row[2],
-                "image_url": row[3],  # <--- NEW: Send image to frontend
-                "match_score": round(float(row[4]) * 100, 1) # Note: Similarity is now index 4
+                "name": row[0] or "Unknown Laptop",
+                "price": float(row[1]) if row[1] is not None else 0.0,
+                "specs": row[2] or "",
+                "image_url": row[3] or "",  # <--- NEW: Send image to frontend
+                "match_score": round(float(row[4]) * 100, 1) if row[4] is not None else 0.0
             })
             
         return {"count": len(results), "results": results}

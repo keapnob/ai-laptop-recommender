@@ -26,12 +26,21 @@ export default function Home() {
     try {
       // Connect to your Python Backend (Uses environment variable in production, falls back to localhost)
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-      const res = await fetch(`${apiBaseUrl}/search?query=${query}&max_price=${price}`)
+      const res = await fetch(`${apiBaseUrl}/search?query=${encodeURIComponent(query)}&max_price=${price}`)
+      
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`)
+      }
+      
       const data = await res.json()
-      setLaptops(data.results)
+      if (data && Array.isArray(data.results)) {
+        setLaptops(data.results)
+      } else {
+        throw new Error("Invalid response format from server")
+      }
     } catch (error) {
       console.error("Failed to fetch:", error)
-      alert("Error connecting to server. Make sure backend is running!")
+      alert("Error connecting to server. Please verify backend is running and CORS is allowed.")
     } finally {
       setLoading(false)
     }
@@ -96,21 +105,25 @@ export default function Home() {
 
         {/* RESULTS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {laptops.map((laptop, index) => (
+          {(laptops || []).map((laptop, index) => (
             <div key={index} className="group bg-slate-800 rounded-3xl border border-slate-700 hover:border-blue-500/50 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 overflow-hidden flex flex-col">
               
               {/* IMAGE AREA */}
               <div className="h-56 bg-white p-6 flex items-center justify-center relative overflow-hidden">
                  {/* Match Badge */}
                 <div className="absolute top-4 right-4 bg-green-500/90 backdrop-blur text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
-                  {laptop.match_score}% MATCH
+                  {laptop.match_score || 0}% MATCH
                 </div>
                 
-                <img 
-                  src={laptop.image_url} 
-                  alt={laptop.name}
-                  className="max-h-full w-auto object-contain group-hover:scale-110 transition-transform duration-500"
-                />
+                {laptop.image_url ? (
+                  <img 
+                    src={laptop.image_url} 
+                    alt={laptop.name}
+                    className="max-h-full w-auto object-contain group-hover:scale-110 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="text-slate-400 text-sm">No Image Available</div>
+                )}
               </div>
 
               {/* CONTENT AREA */}
@@ -120,7 +133,7 @@ export default function Home() {
                 </h2>
                 
                 <p className="text-3xl font-bold text-blue-400 mb-4 font-mono">
-                  ฿{laptop.price.toLocaleString()}
+                  ฿{typeof laptop.price === 'number' ? laptop.price.toLocaleString() : laptop.price || '0'}
                 </p>
                 
                 <div className="bg-slate-900/50 rounded-xl p-4 mb-6 flex-1">
@@ -131,7 +144,7 @@ export default function Home() {
 
                 {/* GOOGLE SEARCH LINK */}
                 <a 
-                  href={`https://www.google.com/search?q=${encodeURIComponent(laptop.name + " NotebookSpec")}`}
+                  href={`https://www.google.com/search?q=${encodeURIComponent((laptop.name || '') + " NotebookSpec")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full block text-center bg-slate-700 hover:bg-white hover:text-slate-900 text-white font-semibold py-3 rounded-xl transition-colors"
@@ -144,7 +157,7 @@ export default function Home() {
         </div>
 
         {/* EMPTY STATE */}
-        {!loading && searched && laptops.length === 0 && (
+        {!loading && searched && (!laptops || laptops.length === 0) && (
           <div className="text-center py-24 opacity-50">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-2xl font-bold text-white mb-2">No laptops found</h3>
